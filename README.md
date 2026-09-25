@@ -2,6 +2,8 @@
 
 Animación procedural de un pez, una serpiente y una lagartija en el navegador, hecha con [p5.js](https://p5js.org/).
 
+**Demo:** <https://amadoramos.github.io/animal-proc-anim-js/>
+
 Es un port de [animal-proc-anim](https://github.com/argonautcode/animal-proc-anim) de argonaut, escrito originalmente en Processing (Java). Explicación de la técnica en el [video original](https://www.youtube.com/watch?v=qlfh_rv6khY).
 
 A diferencia del original, los animales no siguen el ratón: nadan hacia puntos aleatorios de la pantalla, girando en curva, y cada punto nuevo aparece con un efecto de ondas (ripple).
