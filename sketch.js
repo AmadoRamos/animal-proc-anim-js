@@ -192,6 +192,22 @@ class Animal {
     endShape(CLOSE);
   }
 
+  // Point at a fraction of the body width from the spine, so skin patterns stay inside the outline and bend with it
+  bodyPoint(i, angleOffset, frac) {
+    const r = this.bodyWidth[i] * frac, angle = this.spine.angles[i] + angleOffset;
+    return [this.spine.joints[i].x + cos(angle) * r, this.spine.joints[i].y + sin(angle) * r];
+  }
+
+  // Skin patterns lie flat on the body: no drop shadow, no outline; push/pop restores both afterwards
+  pattern(col, drawFn) {
+    push();
+    drawingContext.shadowColor = 'transparent';
+    noStroke();
+    fill(col);
+    drawFn();
+    pop();
+  }
+
   // Always drawn last in display(): turns off the drop shadow, which looks detached on eyes sitting on the body
   eyes(angle, offset) {
     drawingContext.shadowColor = 'transparent';
@@ -216,6 +232,8 @@ class Fish extends Animal {
     super(new Chain(origin, 12, 64, PI / 8), [68, 81, 84, 83, 77, 64, 51, 38, 32, 19], 16);
     this.bodyColor = color(58, 124, 165);
     this.finColor = color(129, 195, 215);
+    // Koi-like patches: [vertebra, angle from spine, fraction of width, diameter], sized to stay inside the body
+    this.spots = [[1, PI / 2, 0.35, 40], [3, -PI / 2, 0.45, 50], [4, PI / 3, 0.3, 30], [6, PI / 2, 0.2, 30], [8, -PI / 2, 0.1, 18]];
   }
 
   fin(i, angleOffset, rotation, w, h) {
@@ -274,6 +292,10 @@ class Fish extends Animal {
     this.v(0, PI / 6);
     this.closeOutline();
 
+    this.pattern(color(38, 86, 124), () => {
+      for (const [i, angle, frac, size] of this.spots) circle(...this.bodyPoint(i, angle, frac), size);
+    });
+
     // Dorsal fin
     fill(this.finColor);
     const side = (i, k) => [j[i].x + cos(a[i] + PI / 2) * k * 16, j[i].y + sin(a[i] + PI / 2) * k * 16];
@@ -308,6 +330,18 @@ class Snake extends Animal {
     this.v(0, 0);
     this.v(0, PI / 6);
     this.closeOutline();
+
+    // Diamonds on every other vertebra, shrinking with the body toward the tail
+    this.pattern(color(125, 38, 32), () => {
+      for (let i = 3; i < n - 2; i += 2) {
+        beginShape();
+        vertex(...this.bodyPoint(i, 0, 0.3));
+        vertex(...this.bodyPoint(i, PI / 2, 0.55));
+        vertex(...this.bodyPoint(i, PI, 0.3));
+        vertex(...this.bodyPoint(i, -PI / 2, 0.55));
+        endShape(CLOSE);
+      }
+    });
 
     this.eyes(PI / 2, -18);
   }
@@ -375,6 +409,13 @@ class Lizard extends Animal {
     curveVertex(this.posX(0, 0, -6), this.posY(0, 0, -4));
     curveVertex(this.posX(0, PI / 6, -8), this.posY(0, PI / 6, -10));
     this.closeOutline();
+
+    // Paired dots down the back, sized to each vertebra's width
+    this.pattern(color(122, 163, 148), () => {
+      for (let i = 1; i < 10; i++) {
+        for (const side of [PI / 2, -PI / 2]) circle(...this.bodyPoint(i, side, 0.45), this.bodyWidth[i] * 0.28);
+      }
+    });
 
     this.eyes(3 * PI / 5, -7);
   }
