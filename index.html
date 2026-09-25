@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>animal-proc-anim</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #282c34; }
+    #menu {
+      position: fixed; top: 16px; left: 16px;
+      padding: 12px 16px; border-radius: 8px;
+      background: rgba(0, 0, 0, 0.5); color: #fff; font: 14px system-ui, sans-serif;
+    }
+    #menu summary { cursor: pointer; user-select: none; }
+    #menu .controls { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    #menu label { display: flex; align-items: center; gap: 8px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.1/lib/p5.min.js"></script>
+  <script src="sketch.js"></script>
+</head>
+<body>
+  <details id="menu" open>
+    <summary>Menú</summary>
+    <div class="controls">
+    <label>Animal
+      <select id="animal">
+        <option value="0">Pez</option>
+        <option value="1">Serpiente</option>
+        <option value="2">Lagartija</option>
+      </select>
+    </label>
+    <!-- Each range shows its value + data-unit in the <output> right after it (wired in sketch.js) -->
+    <label>Velocidad
+      <input id="speed" type="range" min="0.25" max="3" step="0.25" value="1" data-unit="x"><output></output>
+    </label>
+    <label>Radio de giro
+      <input id="turn" type="range" min="50" max="300" step="10" value="80" data-unit=" px"><output></output>
+    </label>
+    <strong>Ripple</strong>
+    <label>Anillos
+      <input id="rippleRings" type="range" min="1" max="6" step="1" value="3" data-unit=""><output></output>
+    </label>
+    <label>Separación
+      <input id="rippleGap" type="range" min="100" max="1000" step="50" value="400" data-unit=" ms"><output></output>
+    </label>
+    <label>Duración
+      <input id="rippleDuration" type="range" min="500" max="6000" step="250" value="2500" data-unit=" ms"><output></output>
+    </label>
+    <label>Tamaño
+      <input id="rippleSize" type="range" min="100" max="800" step="50" value="400" data-unit=" px"><output></output>
+    </label>
+    </div>
+  </details>
+</body>
+</html>
