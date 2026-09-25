@@ -47,7 +47,15 @@ function draw() {
   ripples = ripples.filter(r => millis() - r.time < life);
   for (const r of ripples) drawRipple(r.pos, millis() - r.time, cfg);
 
+  // Soft drop shadow so the animal floats above the background; push/pop saves and restores the canvas context
+  push();
+  drawingContext.shadowColor = 'rgba(0, 0, 0, 0.35)';
+  drawingContext.shadowBlur = 25;
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 20;
+
   a.display();
+  pop();
 }
 
 let ripples = [], lastTarget;
@@ -144,6 +152,7 @@ class Animal {
     this.bodyWidth = bodyWidth; // Width at each vertebra
     this.speed = speed;         // Head step per frame
     this.target = randomPoint();
+    this.swum = 0;              // Total distance travelled, drives fin flapping
   }
 
   // turnRadius: px, tightest arc the head swims; lower = sharper turns
@@ -160,6 +169,7 @@ class Animal {
     const maxTurn = speed / turnRadius;
     const dir = heading + constrain(relativeAngleDiff(heading, desired), -maxTurn, maxTurn);
     this.spine.resolve(p5.Vector.add(head, p5.Vector.fromAngle(dir, speed)));
+    this.swum += speed;
   }
 
   posX(i, angleOffset, lengthOffset = 0) {
@@ -182,10 +192,20 @@ class Animal {
     endShape(CLOSE);
   }
 
+  // Always drawn last in display(): turns off the drop shadow, which looks detached on eyes sitting on the body
   eyes(angle, offset) {
-    fill(255);
-    ellipse(this.posX(0, angle, offset), this.posY(0, angle, offset), 24, 24);
-    ellipse(this.posX(0, -angle, offset), this.posY(0, -angle, offset), 24, 24);
+    drawingContext.shadowColor = 'transparent';
+    for (const side of [angle, -angle]) {
+      const eye = createVector(this.posX(0, side, offset), this.posY(0, side, offset));
+      stroke(255);
+      fill(255);
+      circle(eye.x, eye.y, 24);
+      // Pupil slides toward the target, so it glances at a new point before the body turns
+      const look = p5.Vector.sub(this.target, eye).limit(5);
+      noStroke();
+      fill(20);
+      circle(eye.x + look.x, eye.y + look.y, 11);
+    }
   }
 }
 
@@ -218,12 +238,18 @@ class Fish extends Animal {
     // Head-to-tail can exceed PI (11 * PI/8), which flips the sign, so sum it in two halves
     const headToTail = headToMid1 + relativeAngleDiff(a[6], a[11]);
 
+    // Fins open/close together with distance swum (faster swim = faster strokes, ventral lags behind)
+    // and lag behind turns, rotating toward the rear body's heading as if dragged by the water
+    const flap = sin(this.swum * 0.015) * 0.3;
+    const flapVentral = sin(this.swum * 0.015 - 1) * 0.2;
+    const bend = relativeAngleDiff(a[0], a[4]) * 0.5;
+
     // Pectoral fins
-    this.fin(3, PI / 3, a[2] - PI / 4, 160, 64);
-    this.fin(3, -PI / 3, a[2] + PI / 4, 160, 64);
+    this.fin(3, PI / 3, a[2] - PI / 4 - flap + bend, 160, 64);
+    this.fin(3, -PI / 3, a[2] + PI / 4 + flap + bend, 160, 64);
     // Ventral fins
-    this.fin(7, PI / 2, a[6] - PI / 4, 96, 32);
-    this.fin(7, -PI / 2, a[6] + PI / 4, 96, 32);
+    this.fin(7, PI / 2, a[6] - PI / 4 - flapVentral + bend, 96, 32);
+    this.fin(7, -PI / 2, a[6] + PI / 4 + flapVentral + bend, 96, 32);
 
     // Caudal fin
     beginShape();
